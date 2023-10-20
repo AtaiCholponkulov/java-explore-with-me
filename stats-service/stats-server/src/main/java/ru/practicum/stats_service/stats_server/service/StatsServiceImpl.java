@@ -40,7 +40,7 @@ public class StatsServiceImpl implements StatsService {
         });
 
         // return ipMap's keys with 'hits' field updated from ipMap's values
-        if (unique) {// count unique ips
+        if (unique) { // count unique ips
             return ipMap.entrySet()
                     .stream()
                     .map(entry -> {
@@ -49,7 +49,7 @@ public class StatsServiceImpl implements StatsService {
                         return key;
                     })
                     .collect(Collectors.toList());
-        } else {// count all ips
+        } else { // count all ips
             return ipMap.entrySet()
                     .stream()
                     .map(entry -> {

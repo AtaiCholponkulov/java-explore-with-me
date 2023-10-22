@@ -1,9 +1,9 @@
-package ru.practicum.stats_service.stats_server.repository;
+package ru.practicum.stats.server.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import ru.practicum.stats_service.stats_server.model.EndpointHit;
+import ru.practicum.stats.server.model.EndpointHit;
 
 import java.time.LocalDateTime;
 import java.util.List;

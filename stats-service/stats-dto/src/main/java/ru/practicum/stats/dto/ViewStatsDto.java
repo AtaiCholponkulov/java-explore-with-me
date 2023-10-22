@@ -1,4 +1,4 @@
-package ru.practicum.stats_service.stats_dto;
+package ru.practicum.stats.dto;
 
 import lombok.Data;
 
@@ -18,8 +18,12 @@ public class ViewStatsDto {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ViewStatsDto that = (ViewStatsDto) o;
         return Objects.equals(app, that.app) && Objects.equals(uri, that.uri);
     }

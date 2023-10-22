@@ -1,4 +1,4 @@
-package ru.practicum.stats_service.stats_dto;
+package ru.practicum.stats.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

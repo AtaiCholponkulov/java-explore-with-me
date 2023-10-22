@@ -1,11 +1,12 @@
-package ru.practicum.stats_service.stats_server.service;
+package ru.practicum.stats.server.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.stats_service.stats_dto.EndpointHitDto;
-import ru.practicum.stats_service.stats_dto.ViewStatsDto;
-import ru.practicum.stats_service.stats_server.model.EndpointHit;
-import ru.practicum.stats_service.stats_server.repository.StatsRepository;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.stats.dto.EndpointHitDto;
+import ru.practicum.stats.dto.ViewStatsDto;
+import ru.practicum.stats.server.model.EndpointHit;
+import ru.practicum.stats.server.repository.StatsRepository;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -13,11 +14,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class StatsServiceImpl implements StatsService {
 
     private final StatsRepository statsRepository;
 
     @Override
+    @Transactional
     public void add(EndpointHitDto endpointHitDto) {
         statsRepository.save(map(endpointHitDto));
     }

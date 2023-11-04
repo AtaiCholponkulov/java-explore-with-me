@@ -81,7 +81,6 @@ public class PublicController {
         EventFullDto response = service.getEvent(id);
 
         //add hit
-        log.info("PublicController.getEvent add hit uri: " + request.getRequestURI());
         statsClient.addHit(
                 new EndpointHitDto("ewm-main-service",
                         request.getRequestURI(),

@@ -43,25 +43,19 @@ public class StatsServiceImpl implements StatsService {
         });
 
         // return ipMap's keys with 'hits' field updated from ipMap's values
-        if (unique) { // count unique ips
-            return ipMap.entrySet()
-                    .stream()
-                    .map(entry -> {
-                        ViewStatsDto key = entry.getKey();
-                        key.setHits(new HashSet<>(entry.getValue()).size());
-                        return key;
-                    })
-                    .collect(Collectors.toList());
-        } else { // count all ips
-            return ipMap.entrySet()
-                    .stream()
-                    .map(entry -> {
-                        ViewStatsDto key = entry.getKey();
-                        key.setHits(entry.getValue().size());
-                        return key;
-                    })
-                    .collect(Collectors.toList());
-        }
+        return ipMap.entrySet()
+                .stream()
+                .map(unique ? entry -> {
+                    ViewStatsDto key = entry.getKey();
+                    key.setHits(new HashSet<>(entry.getValue()).size());
+                    return key;
+                } : entry -> {
+                    ViewStatsDto key = entry.getKey();
+                    key.setHits(entry.getValue().size());
+                    return key;
+                })
+                .sorted((vSD1, vSD2) -> vSD2.getHits().compareTo(vSD1.getHits()))
+                .collect(Collectors.toList());
     }
 
     @Override

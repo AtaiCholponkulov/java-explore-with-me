@@ -271,7 +271,7 @@ public class Validator {
             throw new BadRequestException("Field: title. Error: shorter than 1 or longer than 50. Value: " + title);
         }
     }
-    
+
     public static void validateUpdateCompilationRequest(UpdateCompilationRequest compilationUpdate) {
         String title = compilationUpdate.getTitle();
         if (title != null) {

@@ -312,7 +312,7 @@ public class PrivateServiceImpl implements PrivateService {
         if (event.getParticipantLimit() != 0 && Objects.equals(event.getConfirmedRequests(), event.getParticipantLimit())) {
             //# of confirmed met participant limit
             throw new ConflictException("Event with id=" + eventId + " is full");
-        } else if (event.getParticipantLimit() == 0 || !event.getRequestModeration()){
+        } else if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
             status = Status.CONFIRMED;
             //increment # of confirmed req-s
             event.setConfirmedRequests(event.getConfirmedRequests() + 1);

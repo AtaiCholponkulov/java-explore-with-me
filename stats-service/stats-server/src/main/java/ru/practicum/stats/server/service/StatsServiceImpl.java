@@ -64,6 +64,15 @@ public class StatsServiceImpl implements StatsService {
         }
     }
 
+    @Override
+    public Map<Integer, Integer> getViews(List<String> uris) {
+        return statsRepository.countByUris(uris)
+                .stream()
+                .collect(Collectors.toMap(
+                        list -> Integer.parseInt(list.get(0).substring(list.get(0).lastIndexOf("/") + 1)),
+                        list -> Integer.parseInt(list.get(1))));
+    }
+
     private EndpointHit map(EndpointHitDto endpointHitDto) {
         return new EndpointHit(null,
                 endpointHitDto.getApp(),

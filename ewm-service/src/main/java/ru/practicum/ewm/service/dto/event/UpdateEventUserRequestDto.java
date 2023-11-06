@@ -3,7 +3,7 @@ package ru.practicum.ewm.service.dto.event;
 import lombok.Data;
 
 @Data
-public class NewEventDto {
+public class UpdateEventUserRequestDto {
 
     /*
     annotation - краткое описание
@@ -14,6 +14,7 @@ public class NewEventDto {
     paid - (бес)платный вход
     participantLimit - ограничение на кол-во участников
     requestModeration - пре-модерация заявок на участие
+    stateAction - изменение состояния события (SEND_TO_REVIEW, CANCEL_REVIEW)
     title - заголовок
      */
     private String annotation;
@@ -24,5 +25,6 @@ public class NewEventDto {
     private Boolean paid;
     private Integer participantLimit;
     private Boolean requestModeration;
+    private PrivateStateAction stateAction;
     private String title;
 }

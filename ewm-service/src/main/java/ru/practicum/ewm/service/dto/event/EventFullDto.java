@@ -1,36 +1,62 @@
 package ru.practicum.ewm.service.dto.event;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import ru.practicum.ewm.service.dto.category.CategoryDto;
 import ru.practicum.ewm.service.dto.user.UserShortDto;
+import ru.practicum.ewm.service.model.State;
 
 import java.time.LocalDateTime;
 
 import static ru.practicum.ewm.service.valid.Validator.DATE_TIME_PATTERN;
 
-@Data
-@Builder
-public class EventFullDto {
+@Getter
+@Setter
+public class EventFullDto extends EventShortDto {
 
-    private String annotation; //краткое описание
-    private CategoryDto category; //id категории события
-    private int confirmedRequests; //одобренные заявки на участие
+    /*
+    createdOn - дата и время создания события
+    description - полное описание
+    location - широта и долгота места
+    participantLimit - ограничение на кол-во участников
+    publishedOn - дата и время публикации события
+    requestModeration - пре-модерация заявок на участие
+    state - состояние жизненного цикла
+     */
     @JsonFormat(pattern = DATE_TIME_PATTERN)
-    private LocalDateTime createdOn; //дата и время создания события
-    private String description; //полное описание
+    private LocalDateTime createdOn; 
+    private String description; 
+    private LocationDto location; 
+    private Integer participantLimit; 
     @JsonFormat(pattern = DATE_TIME_PATTERN)
-    private LocalDateTime eventDate; //дата события
-    private Integer id; //идент-ор события
-    private UserShortDto initiator; //автор события
-    private Location location; //широта и долгота места
-    private Boolean paid; //(бес)платный вход
-    private Integer participantLimit; //ограничение на кол-во участников
-    @JsonFormat(pattern = DATE_TIME_PATTERN)
-    private LocalDateTime publishedOn; //дата и время публикации события
-    private Boolean requestModeration; //пре-модерация заявок на участие
-    private State state; //состояние жизненного цикла
-    private String title; //заголовок
-    private int views; //кол-во просмотров
+    private LocalDateTime publishedOn; 
+    private Boolean requestModeration; 
+    private State state; 
+
+    public EventFullDto(String annotation,
+                        CategoryDto category,
+                        Integer confirmedRequests,
+                        LocalDateTime eventDate,
+                        Integer id,
+                        UserShortDto initiator,
+                        Boolean paid,
+                        String title,
+                        int views,
+                        LocalDateTime createdOn,
+                        String description,
+                        LocationDto location,
+                        Integer participantLimit,
+                        LocalDateTime publishedOn,
+                        Boolean requestModeration,
+                        State state) {
+        super(annotation, category, confirmedRequests, eventDate, id, initiator, paid, title, views);
+        this.createdOn = createdOn;
+        this.description = description;
+        this.location = location;
+        this.participantLimit = participantLimit;
+        this.publishedOn = publishedOn;
+        this.requestModeration = requestModeration;
+        this.state = state;
+    }
 }

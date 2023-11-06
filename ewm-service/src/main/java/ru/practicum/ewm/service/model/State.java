@@ -1,4 +1,4 @@
-package ru.practicum.ewm.service.dto.event;
+package ru.practicum.ewm.service.model;
 
 public enum State {
 

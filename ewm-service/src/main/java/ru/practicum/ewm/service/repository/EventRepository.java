@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.stereotype.Repository;
-import ru.practicum.ewm.service.dto.event.State;
+import ru.practicum.ewm.service.model.State;
 import ru.practicum.ewm.service.model.Event;
 
 import java.util.List;
@@ -19,8 +19,7 @@ public interface EventRepository extends JpaRepository<Event, Integer>, Querydsl
     Optional<Event> findByIdAndState(int eventId, State state);
 
     @Query("SELECT e.id " +
-            "FROM Event AS e " +
-            "GROUP BY e.id")
+            "FROM Event AS e")
     List<Integer> getAllIds();
 
     List<Event> findAllByIdIn(List<Integer> ids);

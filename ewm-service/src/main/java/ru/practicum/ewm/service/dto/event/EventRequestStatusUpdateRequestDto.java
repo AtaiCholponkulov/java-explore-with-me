@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class EventRequestStatusUpdateRequest {
+public class EventRequestStatusUpdateRequestDto {
 
     private List<Integer> requestIds;
     private String status;

@@ -5,16 +5,16 @@ import lombok.Data;
 
 @Data
 @Builder
-public class UpdateEventAdminRequest {
+public class UpdateEventAdminRequestDto {
 
     private String annotation;
     private Integer category;
     private String description;
     private String eventDate;
-    private Location location;
+    private LocationDto location;
     private Boolean paid;
     private Integer participantLimit;
     private Boolean requestModeration;
-    private AdminStateAction stateAction; //(PUBLISH_EVENT,REJECT_EVENT)
+    private AdminStateAction stateAction;
     private String title;
 }

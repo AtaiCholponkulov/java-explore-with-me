@@ -28,26 +28,26 @@ public class EventMapper {
     }
 
     public static EventFullDto mapToFullDto(Event event) {
-        return EventFullDto.builder()
-                .annotation(event.getAnnotation())
-                .category(CategoryMapper.map(event.getCategory()))
-                .confirmedRequests(event.getConfirmedRequests())
-                .createdOn(event.getCreatedOn())
-                .description(event.getDescription())
-                .eventDate(event.getEventDate())
-                .id(event.getId())
-                .initiator(UserMapper.mapToShortDto(event.getInitiator()))
-                .location(Location.builder()
+        return new EventFullDto(
+                event.getAnnotation(),
+                CategoryMapper.map(event.getCategory()),
+                event.getConfirmedRequests(),
+                event.getEventDate(),
+                event.getId(),
+                UserMapper.mapToShortDto(event.getInitiator()),
+                event.getPaid(),
+                event.getTitle(),
+                0,
+                event.getCreatedOn(),
+                event.getDescription(),
+                LocationDto.builder()
                         .lat(event.getLatitude())
                         .lon(event.getLongitude())
-                        .build())
-                .paid(event.getPaid())
-                .participantLimit(event.getParticipantLimit())
-                .publishedOn(event.getPublishedOn())
-                .requestModeration(event.getRequestModeration())
-                .state(event.getState())
-                .title(event.getTitle())
-                .build();
+                        .build(),
+                event.getParticipantLimit(),
+                event.getPublishedOn(),
+                event.getRequestModeration(),
+                event.getState());
     }
 
     public static List<EventFullDto> mapToFullDtos(List<Event> events) {
@@ -57,16 +57,17 @@ public class EventMapper {
     }
 
     public static EventShortDto mapToShortDto(Event event) {
-        return EventShortDto.builder()
-                .annotation(event.getAnnotation())
-                .category(CategoryMapper.map(event.getCategory()))
-                .confirmedRequests(event.getConfirmedRequests())
-                .eventDate(event.getEventDate())
-                .id(event.getId())
-                .initiator(UserMapper.mapToShortDto(event.getInitiator()))
-                .paid(event.getPaid())
-                .title(event.getTitle())
-                .build();
+        return new EventShortDto(
+
+                event.getAnnotation(),
+                CategoryMapper.map(event.getCategory()),
+                event.getConfirmedRequests(),
+                event.getEventDate(),
+                event.getId(),
+                UserMapper.mapToShortDto(event.getInitiator()),
+                event.getPaid(),
+                event.getTitle(),
+                0);
     }
 
     public static List<EventShortDto> mapToShortDtos(List<Event> events) {

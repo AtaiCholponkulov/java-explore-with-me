@@ -2,10 +2,10 @@ package ru.practicum.ewm.service.service;
 
 import org.springframework.stereotype.Service;
 import ru.practicum.ewm.service.controller.EventSort;
+import ru.practicum.ewm.service.dto.category.CategoryDto;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.event.EventFullDto;
 import ru.practicum.ewm.service.dto.event.EventShortDto;
-import ru.practicum.ewm.service.model.Category;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,12 +13,12 @@ import java.util.List;
 @Service
 public interface PublicService {
 
-    //------------------------------------------------Public: Категории-------------------------------------------------
-    List<Category> getCategories(int from, int size);
+    /** Public: Категории */
+    List<CategoryDto> getCategories(int from, int size);
 
-    Category getCategory(int catId);
+    CategoryDto getCategory(int catId);
 
-    //-------------------------------------------------Public: События--------------------------------------------------
+    /** Public: События */
     List<EventShortDto> getEvents(String text,
                                   List<Integer> categories,
                                   Boolean paid,
@@ -31,7 +31,7 @@ public interface PublicService {
 
     EventFullDto getEvent(int id);
 
-    //----------------------------------------------Public: Подборки событий--------------------------------------------
+    /** Public: Подборки событий */
     List<CompilationDto> getCompilations(Boolean pinned, int from, int size);
 
     CompilationDto getCompilation(int compId);

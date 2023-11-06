@@ -6,12 +6,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.service.dto.category.CategoryDto;
+import ru.practicum.ewm.service.dto.category.NewCategoryDto;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.compilation.NewCompilationDto;
-import ru.practicum.ewm.service.dto.compilation.UpdateCompilationRequest;
-import ru.practicum.ewm.service.dto.event.Location;
-import ru.practicum.ewm.service.dto.event.State;
-import ru.practicum.ewm.service.dto.event.UpdateEventAdminRequest;
+import ru.practicum.ewm.service.dto.compilation.UpdateCompilationRequestDto;
+import ru.practicum.ewm.service.dto.event.AdminStateAction;
+import ru.practicum.ewm.service.dto.event.EventFullDto;
+import ru.practicum.ewm.service.dto.event.LocationDto;
+import ru.practicum.ewm.service.dto.event.UpdateEventAdminRequestDto;
+import ru.practicum.ewm.service.dto.user.NewUserRequestDto;
+import ru.practicum.ewm.service.dto.user.UserDto;
 import ru.practicum.ewm.service.exception.model.ConflictException;
 import ru.practicum.ewm.service.exception.model.NotFoundException;
 import ru.practicum.ewm.service.mapper.EventMapper;
@@ -25,6 +30,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.service.mapper.CompilationMapper.map;
+import static ru.practicum.ewm.service.mapper.EventMapper.mapToFullDto;
+import static ru.practicum.ewm.service.mapper.EventMapper.mapToFullDtos;
+import static ru.practicum.ewm.service.mapper.UserMapper.map;
+import static ru.practicum.ewm.service.mapper.UserMapper.mapToDto;
+import static ru.practicum.ewm.service.mapper.CategoryMapper.map;
 import static ru.practicum.ewm.service.valid.Validator.DATE_TIME_FORMATTER;
 
 @Service
@@ -38,28 +48,26 @@ public class AdminServiceImpl implements AdminService {
     private final CompilationRepository compilationRepository;
     private final CompilationEventRepository compilationEventRepository;
 
-    //------------------------------------------------Admin: Пользователи-----------------------------------------------
+    /** Admin: Пользователи */
     @Override
-    public List<User> getUsers(List<Integer> ids, int from, int size) {
-        Pageable page = PageRequest.of(0, from + size);
+    public List<UserDto> getUsers(List<Integer> ids, int from, int size) {
+        Pageable page = PageRequest.of(from / size, size);
         List<User> res = new ArrayList<>();
-        if (ids == null) { //no ids were provided - get all users
+        if (ids == null) { /* no ids were provided - get all users */
             res = userRepository.findAll(page).getContent();
-            res = from < res.size() ? res.subList(from, res.size()) : new ArrayList<>();
-        } else if (!ids.isEmpty()) { //ids provided
+        } else if (!ids.isEmpty()) { /* ids provided */
             res = userRepository.findByIdIn(ids, page);
-            res = from < res.size() ? res.subList(from, res.size()) : new ArrayList<>();
         }
-        return res;
+        return map(res);
     }
 
     @Override
     @Transactional
-    public User addUser(User newUser) {
+    public UserDto addUser(NewUserRequestDto newUser) {
         if (userRepository.existsByName(newUser.getName())) {
             throw new ConflictException("Field: name. Error: reserved. Value: " + newUser.getName());
         }
-        return userRepository.save(newUser);
+        return mapToDto(userRepository.save(map(newUser)));
     }
 
     @Override
@@ -68,14 +76,14 @@ public class AdminServiceImpl implements AdminService {
         userRepository.deleteById(userId);
     }
 
-    //-------------------------------------------------Admin: Категории-------------------------------------------------
+    /** Admin: Категории */
     @Override
     @Transactional
-    public Category addCategory(Category cat) {
+    public CategoryDto addCategory(NewCategoryDto cat) {
         if (categoryRepository.existsByName(cat.getName())) {
             throw new ConflictException("Field: name. Error: already exists. Value: " + cat.getName());
         }
-        return categoryRepository.save(cat);
+        return map(categoryRepository.save(map(cat)));
     }
 
     @Override
@@ -92,7 +100,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public Category updateCategory(Category cat) {
+    public CategoryDto updateCategory(CategoryDto cat) {
         if (!categoryRepository.existsById(cat.getId())) {
             throw new NotFoundException("Category with id=" + cat.getId() + " was not found");
         }
@@ -101,18 +109,18 @@ public class AdminServiceImpl implements AdminService {
                 throw new ConflictException("Field: name. Error: already exists. Value: " + cat.getName());
             }
         });
-        return categoryRepository.save(cat);
+        return map(categoryRepository.save(map(cat)));
     }
 
-    //--------------------------------------------------Admin: События--------------------------------------------------
+    /** Admin: События */
     @Override
-    public List<Event> getEvents(List<Integer> users,
-                                 List<State> states,
-                                 List<Integer> categories,
-                                 LocalDateTime rangeStart,
-                                 LocalDateTime rangeEnd,
-                                 int from,
-                                 int size) {
+    public List<EventFullDto> getEvents(List<Integer> users,
+                                        List<State> states,
+                                        List<Integer> categories,
+                                        LocalDateTime rangeStart,
+                                        LocalDateTime rangeEnd,
+                                        int from,
+                                        int size) {
         QEvent event = QEvent.event;
         BooleanExpression predicate = event.isNotNull();
 
@@ -136,24 +144,32 @@ public class AdminServiceImpl implements AdminService {
             predicate = predicate.and(event.createdOn.loe(rangeEnd));
         }
 
-        Pageable page = PageRequest.of(0, from + size);
-        List<Event> res = eventRepository.findAll(predicate, page).getContent();
-        return from < res.size() ? res.subList(from, res.size()) : new ArrayList<>();
+        return mapToFullDtos(eventRepository.findAll(predicate, PageRequest.of(from / size, size)).getContent());
     }
 
     @Override
     @Transactional
-    public Event updateEvent(int eventId, UpdateEventAdminRequest eventUpdate) {
-        //check event existence
+    public EventFullDto updateEvent(int eventId, UpdateEventAdminRequestDto eventUpdate) {
+        /* check event existence */
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
 
-        //change event fields if needed
-        if (eventUpdate.getAnnotation() != null) {
-            event.setAnnotation(eventUpdate.getAnnotation());
+        /* change event fields if needed */
+        String annotation = eventUpdate.getAnnotation();
+        Integer categoryId = eventUpdate.getCategory();
+        String description = eventUpdate.getDescription();
+        String eventDate = eventUpdate.getEventDate();
+        LocationDto location = eventUpdate.getLocation();
+        Boolean paid = eventUpdate.getPaid();
+        Integer participantLimit = eventUpdate.getParticipantLimit();
+        Boolean requestModeration = eventUpdate.getRequestModeration();
+        AdminStateAction stateAction = eventUpdate.getStateAction();
+        String title = eventUpdate.getTitle();
+
+        if (annotation != null) {
+            event.setAnnotation(annotation);
         }
 
-        Integer categoryId = eventUpdate.getCategory();
         if (categoryId != null) {
             categoryRepository.findById(categoryId)
                     .ifPresentOrElse(event::setCategory, () -> {
@@ -161,15 +177,14 @@ public class AdminServiceImpl implements AdminService {
                     });
         }
 
-        if (eventUpdate.getDescription() != null) {
-            event.setDescription(eventUpdate.getDescription());
+        if (description != null) {
+            event.setDescription(description);
         }
 
-        if (eventUpdate.getEventDate() != null) {
-            event.setEventDate(LocalDateTime.parse(eventUpdate.getEventDate(), DATE_TIME_FORMATTER));
+        if (eventDate != null) {
+            event.setEventDate(LocalDateTime.parse(eventDate, DATE_TIME_FORMATTER));
         }
 
-        Location location = eventUpdate.getLocation();
         if (location != null) {
             if (location.getLon() != null) {
                 event.setLongitude(location.getLon());
@@ -179,24 +194,24 @@ public class AdminServiceImpl implements AdminService {
             }
         }
 
-        if (eventUpdate.getPaid() != null) {
-            event.setPaid(eventUpdate.getPaid());
+        if (paid != null) {
+            event.setPaid(paid);
         }
 
-        if (eventUpdate.getParticipantLimit() != null) {
-            if (eventUpdate.getParticipantLimit() != 0
-                    && eventUpdate.getParticipantLimit() < event.getConfirmedRequests()) {
-                throw new ConflictException("Field: participantLimit. Error: conflict with 'event' confirmedRequests. Value: " + eventUpdate.getParticipantLimit());
+        if (participantLimit != null) {
+            if (participantLimit != 0
+                    && participantLimit < event.getConfirmedRequests()) {
+                throw new ConflictException("Field: participantLimit. Error: conflict with 'event' confirmedRequests. Value: " + participantLimit);
             }
-            event.setParticipantLimit(eventUpdate.getParticipantLimit());
+            event.setParticipantLimit(participantLimit);
         }
 
-        if (eventUpdate.getRequestModeration() != null) {
-            event.setRequestModeration(eventUpdate.getRequestModeration());
+        if (requestModeration != null) {
+            event.setRequestModeration(requestModeration);
         }
 
-        if (eventUpdate.getStateAction() != null) {
-            switch (eventUpdate.getStateAction()) {
+        if (stateAction != null) {
+            switch (stateAction) {
                 case PUBLISH_EVENT:
                     if (event.getState() != State.PENDING) {
                         throw new ConflictException("Cannot publish the event because it's not in the right state: " + event.getState());
@@ -215,33 +230,32 @@ public class AdminServiceImpl implements AdminService {
             }
         }
 
-        if (eventUpdate.getTitle() != null) {
-            event.setTitle(eventUpdate.getTitle());
+        if (title != null) {
+            event.setTitle(title);
         }
-        return eventRepository.save(event);
+        return mapToFullDto(eventRepository.save(event));
     }
 
-    //----------------------------------------------Admin: Подборки событий---------------------------------------------
+    /** Admin: Подборки событий */
     @Override
     @Transactional
     public CompilationDto addCompilation(NewCompilationDto newCompilationDto) {
-        //save new compilation
+        /* save new compilation */
         Compilation compilation = compilationRepository.save(map(newCompilationDto));
         CompilationDto res = map(compilation);
 
         List<Integer> eventIds = newCompilationDto.getEvents();
         List<Event> events = new ArrayList<>();
         if (eventIds != null && !eventIds.isEmpty()) {
-            //check event ids existence
-            List<Integer> existingIds = eventRepository.getAllIds();
-            eventIds.forEach(id -> {
-                if (!existingIds.contains(id)) {
-                    throw new NotFoundException("Event with id=" + id + " was not found");
-                }
-            });
             events = eventRepository.findAllByIdIn(eventIds);
 
-            //save all new Compilation-Event pairings
+            /* check event ids existence */
+            events.forEach(event -> eventIds.remove(event.getId()));
+            if (!eventIds.isEmpty()) {
+                throw new NotFoundException("Event with id=" + eventIds.get(0) + " was not found");
+            }
+
+            /* save all new Compilation-Event pairings */
             compilationEventRepository.saveAll(events.stream()
                     .map(event -> CompilationEvent.builder()
                             .compilation(compilation)
@@ -250,7 +264,7 @@ public class AdminServiceImpl implements AdminService {
                     .collect(Collectors.toList()));
         }
 
-        //set compilation dto events
+        /* set compilation dto events */
         res.setEvents(events.stream()
                 .map(EventMapper::mapToShortDto)
                 .collect(Collectors.toList()));
@@ -269,12 +283,12 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public CompilationDto updateCompilation(int compId, UpdateCompilationRequest compilationUpdate) {
-        //check compilation existence
+    public CompilationDto updateCompilation(int compId, UpdateCompilationRequestDto compilationUpdate) {
+        /* check compilation existence */
         Compilation compilation = compilationRepository.findById(compId)
                 .orElseThrow(() -> new NotFoundException("Compilation with id=" + compId + " was not found"));
 
-        //update compilation
+        /* update compilation */
         if (compilationUpdate.getPinned() != null) {
             compilation.setPinned(compilationUpdate.getPinned());
         }
@@ -289,10 +303,10 @@ public class AdminServiceImpl implements AdminService {
         if (eventIds == null) {
             events = eventRepository.findAllByIdIn(compilationEventRepository.getCompilationEventIds(compId));
         } else {
-            //delete previous Compilation-Event pairings
+            /* delete previous Compilation-Event pairings */
             compilationEventRepository.deleteAllByCompilationId(compId);
             if (!eventIds.isEmpty()) {
-                //check event ids existence
+                /* check event ids existence */
                 List<Integer> existingIds = eventRepository.getAllIds();
                 eventIds.forEach(id -> {
                     if (!existingIds.contains(id)) {
@@ -301,7 +315,7 @@ public class AdminServiceImpl implements AdminService {
                 });
                 events = eventRepository.findAllByIdIn(eventIds);
 
-                //save all new Compilation-Event pairings
+                /* save all new Compilation-Event pairings */
                 compilationEventRepository.saveAll(events.stream()
                         .map(event -> CompilationEvent.builder()
                                 .compilation(compilation)
@@ -310,7 +324,7 @@ public class AdminServiceImpl implements AdminService {
                         .collect(Collectors.toList()));
             }
         }
-        //set compilation dto events
+        /* set compilation dto events */
         res.setEvents(events.stream()
                 .map(EventMapper::mapToShortDto)
                 .collect(Collectors.toList()));

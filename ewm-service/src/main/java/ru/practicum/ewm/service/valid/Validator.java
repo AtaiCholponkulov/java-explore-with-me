@@ -3,11 +3,12 @@ package ru.practicum.ewm.service.valid;
 import ru.practicum.ewm.service.dto.category.CategoryDto;
 import ru.practicum.ewm.service.dto.category.NewCategoryDto;
 import ru.practicum.ewm.service.dto.compilation.NewCompilationDto;
-import ru.practicum.ewm.service.dto.compilation.UpdateCompilationRequest;
+import ru.practicum.ewm.service.dto.compilation.UpdateCompilationRequestDto;
 import ru.practicum.ewm.service.dto.event.*;
-import ru.practicum.ewm.service.dto.user.NewUserRequest;
+import ru.practicum.ewm.service.dto.user.NewUserRequestDto;
 import ru.practicum.ewm.service.exception.model.BadRequestException;
 import ru.practicum.ewm.service.exception.model.ForbiddenException;
+import ru.practicum.ewm.service.model.Status;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -33,7 +34,7 @@ public class Validator {
         }
     }
 
-    public static void validateNewUser(NewUserRequest user) {
+    public static void validateNewUser(NewUserRequestDto user) {
         String name = user.getName();
         if (name == null || name.isBlank()) {
             throw new BadRequestException("Field: name. Error: empty. Value: " + name);
@@ -87,7 +88,7 @@ public class Validator {
             }
         }
 
-        Location location = event.getLocation();
+        LocationDto location = event.getLocation();
         if (location == null) {
             throw new BadRequestException("Field: location. Error: empty. Value: null");
         } else {
@@ -123,7 +124,7 @@ public class Validator {
         }
     }
 
-    public static void validateEventUserUpdate(UpdateEventUserRequest eventUpdate) {
+    public static void validateEventUserUpdate(UpdateEventUserRequestDto eventUpdate) {
         String annotation = eventUpdate.getAnnotation();
         if (annotation != null) {
             if (annotation.isBlank()) {
@@ -153,7 +154,7 @@ public class Validator {
             }
         }
 
-        Location location = eventUpdate.getLocation();
+        LocationDto location = eventUpdate.getLocation();
         if (location != null) {
             if (location.getLat() != null && (location.getLat() < -90 || location.getLat() > 90)) {
                 throw new ForbiddenException("Field: location.lat. Error: impossible value. Value: " + location.getLat());
@@ -173,7 +174,7 @@ public class Validator {
         }
     }
 
-    public static void validateEventAdminUpdate(UpdateEventAdminRequest eventUpdate) {
+    public static void validateEventAdminUpdate(UpdateEventAdminRequestDto eventUpdate) {
         String annotation = eventUpdate.getAnnotation();
         if (annotation != null) {
             if (annotation.isBlank()) {
@@ -203,7 +204,7 @@ public class Validator {
             }
         }
 
-        Location location = eventUpdate.getLocation();
+        LocationDto location = eventUpdate.getLocation();
         if (location != null) {
             if (location.getLat() != null && (location.getLat() < -90 || location.getLat() > 90)) {
                 throw new ForbiddenException("Field: location.lat. Error: impossible value. Value: " + location.getLat());
@@ -223,7 +224,7 @@ public class Validator {
         }
     }
 
-    public static void validate(EventRequestStatusUpdateRequest requestStatusUpdates) {
+    public static void validate(EventRequestStatusUpdateRequestDto requestStatusUpdates) {
         if (requestStatusUpdates.getRequestIds() == null || requestStatusUpdates.getRequestIds().isEmpty()) {
             throw new BadRequestException("Field: requestIds. Error: empty. Value: " + requestStatusUpdates.getRequestIds());
         }
@@ -272,7 +273,7 @@ public class Validator {
         }
     }
 
-    public static void validateUpdateCompilationRequest(UpdateCompilationRequest compilationUpdate) {
+    public static void validateUpdateCompilationRequest(UpdateCompilationRequestDto compilationUpdate) {
         String title = compilationUpdate.getTitle();
         if (title != null) {
             if (title.isBlank()) {

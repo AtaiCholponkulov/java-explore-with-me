@@ -8,22 +8,17 @@ import ru.practicum.ewm.service.dto.category.CategoryDto;
 import ru.practicum.ewm.service.dto.category.NewCategoryDto;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.compilation.NewCompilationDto;
-import ru.practicum.ewm.service.dto.compilation.UpdateCompilationRequest;
+import ru.practicum.ewm.service.dto.compilation.UpdateCompilationRequestDto;
 import ru.practicum.ewm.service.dto.event.EventFullDto;
-import ru.practicum.ewm.service.dto.event.State;
-import ru.practicum.ewm.service.dto.event.UpdateEventAdminRequest;
-import ru.practicum.ewm.service.dto.user.NewUserRequest;
+import ru.practicum.ewm.service.dto.event.UpdateEventAdminRequestDto;
+import ru.practicum.ewm.service.dto.user.NewUserRequestDto;
 import ru.practicum.ewm.service.dto.user.UserDto;
-import ru.practicum.ewm.service.mapper.UserMapper;
+import ru.practicum.ewm.service.model.State;
 import ru.practicum.ewm.service.service.AdminService;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static ru.practicum.ewm.service.mapper.CategoryMapper.map;
-import static ru.practicum.ewm.service.mapper.EventMapper.mapToFullDto;
-import static ru.practicum.ewm.service.mapper.EventMapper.mapToFullDtos;
-import static ru.practicum.ewm.service.mapper.UserMapper.map;
 import static ru.practicum.ewm.service.valid.Validator.*;
 
 @RestController
@@ -33,20 +28,20 @@ public class AdminController {
 
     private final AdminService service;
 
-    //------------------------------------------------Admin: Пользователи-----------------------------------------------
+    /** Admin: Пользователи */
     @GetMapping("/users")
     public List<UserDto> getUsers(@RequestParam(required = false) List<Integer> ids,
                                   @RequestParam(defaultValue = "0") int from,
                                   @RequestParam(defaultValue = "10") int size) {
         validatePaginationParams(from, size);
-        return map(service.getUsers(ids, from, size));
+        return service.getUsers(ids, from, size);
     }
 
     @PostMapping("/users")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto addUser(@RequestBody NewUserRequest newUser) {
+    public UserDto addUser(@RequestBody NewUserRequestDto newUser) {
         validateNewUser(newUser);
-        return UserMapper.mapToDto(service.addUser(map(newUser)));
+        return service.addUser(newUser);
     }
 
     @DeleteMapping("/users/{userId}")
@@ -55,12 +50,12 @@ public class AdminController {
         service.deleteUser(userId);
     }
 
-    //-------------------------------------------------Admin: Категории-------------------------------------------------
+    /** Admin: Категории */
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryDto addCategory(@RequestBody NewCategoryDto newCat) {
         validateNewCategory(newCat);
-        return map(service.addCategory(map(newCat)));
+        return service.addCategory(newCat);
     }
 
     @DeleteMapping("/categories/{catId}")
@@ -74,10 +69,10 @@ public class AdminController {
                                       @PathVariable int catId) {
         validateUpdateCategory(cat);
         cat.setId(catId);
-        return map(service.updateCategory(map(cat)));
+        return service.updateCategory(cat);
     }
 
-    //--------------------------------------------------Admin: События--------------------------------------------------
+    /** Admin: События */
     @GetMapping("/events")
     public List<EventFullDto> getEvents(@RequestParam(required = false) List<Integer> users,
                                         @RequestParam(required = false) List<State> states,
@@ -88,17 +83,17 @@ public class AdminController {
                                         @RequestParam(defaultValue = "10") int size) {
         validateRangeStartAndEndParams(rangeStart, rangeEnd);
         validatePaginationParams(from, size);
-        return mapToFullDtos(service.getEvents(users, states, categories, rangeStart, rangeEnd, from, size));
+        return service.getEvents(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 
     @PatchMapping("/events/{eventId}")
     public EventFullDto updateEvent(@PathVariable int eventId,
-                                    @RequestBody UpdateEventAdminRequest eventUpdate) {
+                                    @RequestBody UpdateEventAdminRequestDto eventUpdate) {
         validateEventAdminUpdate(eventUpdate);
-        return mapToFullDto(service.updateEvent(eventId, eventUpdate));
+        return service.updateEvent(eventId, eventUpdate);
     }
 
-    //----------------------------------------------Admin: Подборки событий---------------------------------------------
+    /** Admin: Подборки событий */
     @PostMapping("/compilations")
     @ResponseStatus(HttpStatus.CREATED)
     public CompilationDto addCompilation(@RequestBody NewCompilationDto newCompilationDto) {
@@ -114,7 +109,7 @@ public class AdminController {
 
     @PatchMapping("/compilations/{compId}")
     public CompilationDto updateCompilation(@PathVariable int compId,
-                                            @RequestBody UpdateCompilationRequest compilationUpdate) {
+                                            @RequestBody UpdateCompilationRequestDto compilationUpdate) {
         validateUpdateCompilationRequest(compilationUpdate);
         return service.updateCompilation(compId, compilationUpdate);
     }

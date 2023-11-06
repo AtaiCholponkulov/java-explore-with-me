@@ -1,7 +1,6 @@
 package ru.practicum.ewm.service.controller;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,31 +18,30 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static ru.practicum.ewm.service.mapper.CategoryMapper.map;
 import static ru.practicum.ewm.service.valid.Validator.*;
 
 @RestController
 @RequiredArgsConstructor
-@Slf4j
 public class PublicController {
 
     private final PublicService service;
     private final StatsClient statsClient;
+    private static final String APP = "ewm-main-service";
 
-    //------------------------------------------------Public: Категории-------------------------------------------------
+    /** Public: Категории */
     @GetMapping("/categories")
     public List<CategoryDto> getCategories(@RequestParam(defaultValue = "0") int from,
                                            @RequestParam(defaultValue = "10") int size) {
         validatePaginationParams(from, size);
-        return map(service.getCategories(from, size));
+        return service.getCategories(from, size);
     }
 
     @GetMapping("/categories/{catId}")
     public CategoryDto getCategory(@PathVariable int catId) {
-        return map(service.getCategory(catId));
+        return service.getCategory(catId);
     }
 
-    //-------------------------------------------------Public: События--------------------------------------------------
+    /** Public: События */
     @GetMapping("/events")
     public List<EventShortDto> getEvents(@RequestParam(required = false) String text,
                                          @RequestParam(required = false) List<Integer> categories,
@@ -67,9 +65,9 @@ public class PublicController {
                 from,
                 size);
 
-        //add hit
+        /* add hit */
         statsClient.addHit(
-                new EndpointHitDto("ewm-main-service",
+                new EndpointHitDto(APP,
                         request.getRequestURI(),
                         request.getRemoteAddr(),
                         LocalDateTime.now()));
@@ -80,16 +78,16 @@ public class PublicController {
     public EventFullDto getEvent(@PathVariable int id, HttpServletRequest request) {
         EventFullDto response = service.getEvent(id);
 
-        //add hit
+        /* add hit */
         statsClient.addHit(
-                new EndpointHitDto("ewm-main-service",
+                new EndpointHitDto(APP,
                         request.getRequestURI(),
                         request.getRemoteAddr(),
                         LocalDateTime.now()));
         return response;
     }
 
-    //----------------------------------------------Public: Подборки событий--------------------------------------------
+    /** Public: Подборки событий */
     @GetMapping("/compilations")
     public List<CompilationDto> getCompilations(@RequestParam(required = false) Boolean pinned,
                                                 @RequestParam(defaultValue = "0") int from,

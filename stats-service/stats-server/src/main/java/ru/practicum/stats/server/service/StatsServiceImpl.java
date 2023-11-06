@@ -27,12 +27,12 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<ViewStatsDto> get(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
-        // get db records
+        /* get db records */
         List<EndpointHit> data = uris == null || uris.isEmpty()
                 ? statsRepository.get(start, end)
                 : statsRepository.get(start, end, uris);
 
-        // key: obj(app, uri), value: list(ips)
+        /* key: obj(app, uri), value: list(ips) */
         Map<ViewStatsDto, List<String>> ipMap = new HashMap<>();
         data.forEach(eH -> {
             ViewStatsDto vSD = new ViewStatsDto(eH.getApp(), eH.getUri());
@@ -42,7 +42,7 @@ public class StatsServiceImpl implements StatsService {
             ipMap.get(vSD).add(eH.getIp());
         });
 
-        // return ipMap's keys with 'hits' field updated from ipMap's values
+        /* return ipMap's keys with 'hits' field updated from ipMap's values */
         return ipMap.entrySet()
                 .stream()
                 .map(unique ? entry -> {

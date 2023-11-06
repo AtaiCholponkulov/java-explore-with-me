@@ -31,6 +31,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleBadRequestException(final BadRequestException e) {
+        log.warn(e.getMessage(), e);
         return ApiError.builder()
                 .message(e.getMessage())
                 .reason(e.getReason())
@@ -42,6 +43,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleBadRequestException(final MissingServletRequestParameterException e) {
+        log.warn(e.getMessage(), e);
         return ApiError.builder()
                 .message(e.getMessage())
                 .status("BAD_REQUEST")
@@ -52,6 +54,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ApiError handleForbiddenException(final ForbiddenException e) {
+        log.warn(e.getMessage(), e);
         return ApiError.builder()
                 .message(e.getMessage())
                 .reason(e.getReason())
@@ -63,6 +66,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFoundException(final NotFoundException e) {
+        log.warn(e.getMessage(), e);
         return ApiError.builder()
                 .message(e.getMessage())
                 .reason(e.getReason())
@@ -74,6 +78,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleNotFoundException(final ConflictException e) {
+        log.warn(e.getMessage(), e);
         return ApiError.builder()
                 .message(e.getMessage())
                 .reason(e.getReason())

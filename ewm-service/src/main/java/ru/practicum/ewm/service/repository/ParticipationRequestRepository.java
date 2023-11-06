@@ -5,12 +5,11 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.ewm.service.model.ParticipationRequest;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Integer> {
 
-    Optional<ParticipationRequest> findByRequesterIdAndEventId(int userId, int eventId);
+    boolean existsByRequesterIdAndEventId(int userId, int eventId);
 
     List<ParticipationRequest> findAllByRequesterId(int userId);
 

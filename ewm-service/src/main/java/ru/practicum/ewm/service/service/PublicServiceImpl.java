@@ -2,19 +2,21 @@ package ru.practicum.ewm.service.service;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.service.controller.EventSort;
+import ru.practicum.ewm.service.dto.category.CategoryDto;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.event.EventFullDto;
 import ru.practicum.ewm.service.dto.event.EventShortDto;
-import ru.practicum.ewm.service.dto.event.State;
 import ru.practicum.ewm.service.exception.model.NotFoundException;
 import ru.practicum.ewm.service.mapper.EventMapper;
-import ru.practicum.ewm.service.model.*;
+import ru.practicum.ewm.service.model.Compilation;
+import ru.practicum.ewm.service.model.Event;
+import ru.practicum.ewm.service.model.QEvent;
+import ru.practicum.ewm.service.model.State;
 import ru.practicum.ewm.service.repository.CategoryRepository;
 import ru.practicum.ewm.service.repository.CompilationEventRepository;
 import ru.practicum.ewm.service.repository.CompilationRepository;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static ru.practicum.ewm.service.mapper.CategoryMapper.map;
 import static ru.practicum.ewm.service.mapper.CompilationMapper.map;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToFullDto;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToShortDto;
@@ -43,21 +46,19 @@ public class PublicServiceImpl implements PublicService {
     private final CompilationRepository compilationRepository;
     private final CompilationEventRepository compilationEventRepository;
 
-    //------------------------------------------------Public: Категории-------------------------------------------------
+    /** Public: Категории */
     @Override
-    public List<Category> getCategories(int from, int size) {
-        Page<Category> categoryPage =  categoryRepository.findAll(PageRequest.of(0, from + size));
-        int pageSize = categoryPage.getNumberOfElements();
-        return from < pageSize ? categoryPage.getContent().subList(from, pageSize) : new ArrayList<>();
+    public List<CategoryDto> getCategories(int from, int size) {
+        return map(categoryRepository.findAll(PageRequest.of(from / size, size)).getContent());
     }
 
     @Override
-    public Category getCategory(int catId) {
-        return categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found"));
+    public CategoryDto getCategory(int catId) {
+        return map(categoryRepository.findById(catId)
+                .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found")));
     }
 
-    //-------------------------------------------------Public: События--------------------------------------------------
+    /** Public: События */
     @Override
     public List<EventShortDto> getEvents(String text,
                                          List<Integer> categories,
@@ -98,28 +99,25 @@ public class PublicServiceImpl implements PublicService {
                     .or(event.participantLimit.eq(0)));
         }
 
-        Pageable page = PageRequest.of(0, from + size);
-        Page<Event> eventPage = eventRepository.findAll(predicate, page);
-        int pageSize = eventPage.getNumberOfElements();
+        List<Event> events = eventRepository.findAll(predicate, PageRequest.of(from / size, size)).getContent();
 
-        if (from >= pageSize) {
+        if (events.isEmpty()) {
             return new ArrayList<>();
         }
 
+        /* map to short dtos */
         List<Integer> eventIds = new ArrayList<>();
-        List<EventShortDto> response = new ArrayList<>();
+        List<EventShortDto> response = events.stream()
+                .map(curEvent -> {
+                    eventIds.add(curEvent.getId());
+                    return mapToShortDto(curEvent);
+                }).collect(Collectors.toList());
 
-        //map to short dtos
-        eventPage.getContent().subList(from, pageSize).forEach(curEvent -> {
-            eventIds.add(curEvent.getId());
-            response.add(mapToShortDto(curEvent));
-        });
-
-        //set views
+        /* set views */
         Map<Integer, Integer> views = statsClient.getViews(eventIds);
         response.forEach(eventShortDto -> eventShortDto.setViews(views.getOrDefault(eventShortDto.getId(), 0)));
 
-        //sort
+        /* sort */
         if (sort != null && response.size() > 1) {
             switch (sort) {
                 case VIEWS:
@@ -142,29 +140,28 @@ public class PublicServiceImpl implements PublicService {
 
     @Override
     public EventFullDto getEvent(int id) {
-        //check event existence and state
+        /* check event existence and state */
         Event event = eventRepository.findByIdAndState(id, State.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException("Event with id=" + id + " was not found"));
 
-        //set views
+        /* set views */
         Map<Integer, Integer> views = statsClient.getViews(List.of(id));
         EventFullDto response = mapToFullDto(event);
         response.setViews(views.getOrDefault(id, 0));
         return response;
     }
 
-    //----------------------------------------------Public: Подборки событий--------------------------------------------
+    /** Public: Подборки событий */
     @Override
     public List<CompilationDto> getCompilations(Boolean pinned, int from, int size) {
-        Pageable page = PageRequest.of(0, from + size);
+        Pageable page = PageRequest.of(from / size, size);
         List<Compilation> compilations = pinned != null
                 ? compilationRepository.findAllByPinned(pinned, page)
                 : compilationRepository.findAll(page).getContent();
 
-        return from >= compilations.size()
+        return compilations.isEmpty()
                 ? new ArrayList<>()
-                : compilations.subList(from, compilations.size())
-                        .stream()
+                : compilations.stream()
                         .map(compilation -> {
                             CompilationDto compilationDto = map(compilation);
                             compilationDto.setEvents(
@@ -179,12 +176,12 @@ public class PublicServiceImpl implements PublicService {
 
     @Override
     public CompilationDto getCompilation(int compId) {
-        //check compilation existence
+        /* check compilation existence */
         Compilation compilation = compilationRepository.findById(compId)
                 .orElseThrow(() -> new NotFoundException("Compilation with id=" + compId + " was not found"));
         CompilationDto res = map(compilation);
 
-        //set compilation events
+        /* set compilation events */
         res.setEvents(compilationEventRepository.getCompilationEvents(compId)
                 .stream()
                 .map(EventMapper::mapToShortDto)

@@ -1,6 +1,6 @@
 package ru.practicum.ewm.service.mapper;
 
-import ru.practicum.ewm.service.dto.user.NewUserRequest;
+import ru.practicum.ewm.service.dto.user.NewUserRequestDto;
 import ru.practicum.ewm.service.dto.user.UserDto;
 import ru.practicum.ewm.service.dto.user.UserShortDto;
 import ru.practicum.ewm.service.model.User;
@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class UserMapper {
 
-    public static User map(NewUserRequest newUser) {
+    public static User map(NewUserRequestDto newUser) {
         return User.builder()
                 .email(newUser.getEmail())
                 .name(newUser.getName())

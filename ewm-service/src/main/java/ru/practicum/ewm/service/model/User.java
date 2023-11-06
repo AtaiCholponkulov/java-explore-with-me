@@ -1,6 +1,5 @@
 package ru.practicum.ewm.service.model;
 
-
 import lombok.*;
 
 import javax.persistence.*;
@@ -10,7 +9,8 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
+@Getter
+@Setter
 public class User {
 
     @Id

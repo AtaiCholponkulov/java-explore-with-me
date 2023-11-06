@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS participation_request (
     created TIMESTAMP NOT NULL,
     event_id BIGINT REFERENCES event(id),
     requester_id BIGINT REFERENCES users(id),
-    status varchar(10) NOT NULL
+    status varchar(10) NOT NULL,
+    CONSTRAINT unique_event_requester UNIQUE (event_id, requester_id)
 );
 
 CREATE TABLE IF NOT EXISTS compilation (

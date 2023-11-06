@@ -25,14 +25,14 @@ public class EventFullDto extends EventShortDto {
     state - состояние жизненного цикла
      */
     @JsonFormat(pattern = DATE_TIME_PATTERN)
-    private LocalDateTime createdOn; 
-    private String description; 
-    private LocationDto location; 
-    private Integer participantLimit; 
+    private LocalDateTime createdOn;
+    private String description;
+    private LocationDto location;
+    private Integer participantLimit;
     @JsonFormat(pattern = DATE_TIME_PATTERN)
-    private LocalDateTime publishedOn; 
-    private Boolean requestModeration; 
-    private State state; 
+    private LocalDateTime publishedOn;
+    private Boolean requestModeration;
+    private State state;
 
     public EventFullDto(String annotation,
                         CategoryDto category,

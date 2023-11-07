@@ -27,12 +27,12 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<ViewStatsDto> get(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
-        // get db records
+        /* get db records */
         List<EndpointHit> data = uris == null || uris.isEmpty()
                 ? statsRepository.get(start, end)
                 : statsRepository.get(start, end, uris);
 
-        // key: obj(app, uri), value: list(ips)
+        /* key: obj(app, uri), value: list(ips) */
         Map<ViewStatsDto, List<String>> ipMap = new HashMap<>();
         data.forEach(eH -> {
             ViewStatsDto vSD = new ViewStatsDto(eH.getApp(), eH.getUri());
@@ -42,26 +42,29 @@ public class StatsServiceImpl implements StatsService {
             ipMap.get(vSD).add(eH.getIp());
         });
 
-        // return ipMap's keys with 'hits' field updated from ipMap's values
-        if (unique) { // count unique ips
-            return ipMap.entrySet()
-                    .stream()
-                    .map(entry -> {
-                        ViewStatsDto key = entry.getKey();
-                        key.setHits(new HashSet<>(entry.getValue()).size());
-                        return key;
-                    })
-                    .collect(Collectors.toList());
-        } else { // count all ips
-            return ipMap.entrySet()
-                    .stream()
-                    .map(entry -> {
-                        ViewStatsDto key = entry.getKey();
-                        key.setHits(entry.getValue().size());
-                        return key;
-                    })
-                    .collect(Collectors.toList());
-        }
+        /* return ipMap's keys with 'hits' field updated from ipMap's values */
+        return ipMap.entrySet()
+                .stream()
+                .map(unique ? entry -> {
+                    ViewStatsDto key = entry.getKey();
+                    key.setHits(new HashSet<>(entry.getValue()).size());
+                    return key;
+                } : entry -> {
+                    ViewStatsDto key = entry.getKey();
+                    key.setHits(entry.getValue().size());
+                    return key;
+                })
+                .sorted((vSD1, vSD2) -> vSD2.getHits().compareTo(vSD1.getHits()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<Integer, Integer> getViews(List<String> uris) {
+        return statsRepository.countByUris(uris)
+                .stream()
+                .collect(Collectors.toMap(
+                        list -> Integer.parseInt(list.get(0).substring(list.get(0).lastIndexOf("/") + 1)),
+                        list -> Integer.parseInt(list.get(1))));
     }
 
     private EndpointHit map(EndpointHitDto endpointHitDto) {

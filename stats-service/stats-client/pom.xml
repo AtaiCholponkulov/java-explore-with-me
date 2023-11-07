@@ -11,8 +11,9 @@
 
     <artifactId>stats-client</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-
     <name>EWM Stats Service Client</name>
+    <packaging>jar</packaging>
+
     <dependencies>
         <dependency>
             <groupId>ru.practicum</groupId>
@@ -26,10 +27,15 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.14</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
     </dependencies>
-
 </project>

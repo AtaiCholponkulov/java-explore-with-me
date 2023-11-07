@@ -12,6 +12,7 @@
     <artifactId>stats-dto</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>EWM Stats Service DTOs</name>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>

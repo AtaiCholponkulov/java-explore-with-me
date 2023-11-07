@@ -23,4 +23,10 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
             "AND eh.timestamp < ?2 " +
             "AND eh.uri IN ?3")
     List<EndpointHit> get(LocalDateTime start, LocalDateTime end, List<String> uris);
+
+    @Query("SELECT eh.uri, COUNT(DISTINCT eh.ip) " +
+            "FROM EndpointHit AS eh " +
+            "WHERE eh.uri IN ?1 " +
+            "GROUP BY eh.uri")
+    List<List<String>> countByUris(List<String> uri);
 }

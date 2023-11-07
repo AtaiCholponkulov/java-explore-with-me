@@ -1,11 +1,9 @@
 package ru.practicum.ewm.service.service;
 
-import org.springframework.stereotype.Service;
 import ru.practicum.ewm.service.dto.event.*;
 
 import java.util.List;
 
-@Service
 public interface PrivateService {
 
     /** Private: События */

@@ -14,72 +14,54 @@ import java.time.LocalDateTime;
 @Setter
 public class Event {
 
-    /*
-    * createdOn - дата и время создания события
-    * description - полное описание
-    * location - широта и долгота места
-    * participantLimit - ограничение на кол-во участников
-    * publishedOn - дата и время публикации события
-    * requestModeration - пре-модерация заявок на участие
-    * state - состояние жизненного цикла
-    * annotation - краткое описание
-    * category - id категории события
-    * confirmedRequests - одобренные заявки на участие
-    * eventDate - дата события
-    * id - идент-ор события
-    * initiator - автор события
-    * paid - (бес)платный вход
-    * title - заголовок
-    * views - кол-во просмотров
-    */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Integer id;/* идент-ор события */
 
     @Column(name = "annotation")
-    private String annotation;
+    private String annotation;/* краткое описание */
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
-    private Category category;
+    private Category category;/* категория события */
 
     @Column(name = "confirmed_requests")
-    private int confirmedRequests;
+    private int confirmedRequests;/* одобренные заявки на участие */
 
     @Column(name = "created_on")
-    private LocalDateTime createdOn;
+    private LocalDateTime createdOn;/* дата и время создания события */
 
     @Column(name = "description")
-    private String description;
+    private String description;/* полное описание */
 
     @Column(name = "event_date")
-    private LocalDateTime eventDate;
+    private LocalDateTime eventDate;/* дата события */
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "initiator_id")
-    private User initiator;
+    private User initiator;/* автор события */
 
     @Column(name = "longitude")
-    private Float longitude;
+    private Float longitude;/* широта места */
 
     @Column(name = "latitude")
-    private Float latitude;
+    private Float latitude;/* долгота места */
 
     @Column(name = "paid")
-    private Boolean paid;
+    private Boolean paid;/* (бес)платный вход */
 
     @Column(name = "participant_limit")
-    private Integer participantLimit;
+    private Integer participantLimit;/* ограничение на кол-во участников */
 
     @Column(name = "published_on")
-    private LocalDateTime publishedOn;
+    private LocalDateTime publishedOn;/* дата и время публикации события */
 
     @Column(name = "request_moderation")
-    private Boolean requestModeration;
+    private Boolean requestModeration;/* пре-модерация заявок на участие */
 
     @Enumerated(value = EnumType.STRING)
-    private State state;
+    private State state;/* состояние жизненного цикла */
 
     @Column(name = "title")
-    private String title;
+    private String title;/* заголовок */
 }

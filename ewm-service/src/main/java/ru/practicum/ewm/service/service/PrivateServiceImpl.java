@@ -41,7 +41,7 @@ public class PrivateServiceImpl implements PrivateService {
             throw new NotFoundException("User with id=" + userId + " was not found");
         }
 
-        return mapToShortDtos(eventRepository.findAllByInitiatorId(userId, PageRequest.of(0, from + size)));
+        return mapToShortDtos(eventRepository.findAllByInitiatorId(userId, PageRequest.of(from / size, size)));
     }
 
     @Override

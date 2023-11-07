@@ -5,26 +5,14 @@ import lombok.Data;
 @Data
 public class UpdateEventUserRequestDto {
 
-    /*
-    annotation - краткое описание
-    category - id категории события
-    description - полное описание
-    eventDate - дата события
-    location - широта и долгота места
-    paid - (бес)платный вход
-    participantLimit - ограничение на кол-во участников
-    requestModeration - пре-модерация заявок на участие
-    stateAction - изменение состояния события (SEND_TO_REVIEW, CANCEL_REVIEW)
-    title - заголовок
-     */
-    private String annotation;
-    private Integer category;
-    private String description;
-    private String eventDate;
-    private LocationDto location;
-    private Boolean paid;
-    private Integer participantLimit;
-    private Boolean requestModeration;
-    private PrivateStateAction stateAction;
-    private String title;
+    private String annotation;/* краткое описание */
+    private Integer category;/* id категории события */
+    private String description;/* полное описание */
+    private String eventDate;/* дата события */
+    private LocationDto location;/* широта и долгота места */
+    private Boolean paid;/* (бес)платный вход */
+    private Integer participantLimit;/* ограничение на кол-во участников */
+    private Boolean requestModeration;/* пре-модерация заявок на участие */
+    private PrivateStateAction stateAction;/* изменение состояния события */
+    private String title;/* заголовок */
 }

@@ -15,24 +15,15 @@ import static ru.practicum.ewm.service.valid.Validator.DATE_TIME_PATTERN;
 @Setter
 public class EventFullDto extends EventShortDto {
 
-    /*
-    createdOn - дата и время создания события
-    description - полное описание
-    location - широта и долгота места
-    participantLimit - ограничение на кол-во участников
-    publishedOn - дата и время публикации события
-    requestModeration - пре-модерация заявок на участие
-    state - состояние жизненного цикла
-     */
     @JsonFormat(pattern = DATE_TIME_PATTERN)
-    private LocalDateTime createdOn;
-    private String description;
-    private LocationDto location;
-    private Integer participantLimit;
+    private LocalDateTime createdOn;/* дата и время создания события */
+    private String description;/* полное описание */
+    private LocationDto location;/* широта и долгота места */
+    private Integer participantLimit;/* ограничение на кол-во участников */
     @JsonFormat(pattern = DATE_TIME_PATTERN)
-    private LocalDateTime publishedOn;
-    private Boolean requestModeration;
-    private State state;
+    private LocalDateTime publishedOn;/* дата и время публикации события */
+    private Boolean requestModeration;/* пре-модерация заявок на участие */
+    private State state;/* состояние жизненного цикла */
 
     public EventFullDto(String annotation,
                         CategoryDto category,

@@ -1,6 +1,5 @@
 package ru.practicum.ewm.service.service;
 
-import org.springframework.stereotype.Service;
 import ru.practicum.ewm.service.controller.EventSort;
 import ru.practicum.ewm.service.dto.category.CategoryDto;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
@@ -10,7 +9,6 @@ import ru.practicum.ewm.service.dto.event.EventShortDto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Service
 public interface PublicService {
 
     /** Public: Категории */

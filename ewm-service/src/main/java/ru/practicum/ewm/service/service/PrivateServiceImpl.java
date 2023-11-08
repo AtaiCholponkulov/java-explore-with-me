@@ -445,6 +445,6 @@ public class PrivateServiceImpl implements PrivateService {
             throw new ConflictException("Cannot delete because user with id=" + commenterId + " is not author of the comment with id=" + commentId);
         }
 
-        categoryRepository.deleteById(commentId);
+        commentRepository.deleteById(commentId);
     }
 }

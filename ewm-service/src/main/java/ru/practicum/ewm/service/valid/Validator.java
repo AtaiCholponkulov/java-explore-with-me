@@ -289,8 +289,8 @@ public class Validator {
         String text = newComment.getText();
         if (text == null || text.isBlank()) {
             throw new BadRequestException("Field: text. Error: empty. Value: " + text);
-        } else if (text.length() < 20 || text.length() > 500) {
-            throw new BadRequestException("Field: text. Error: shorter than 20 or longer than 2000. Value: " + text);
+        } else if (text.length() < 2 || text.length() > 500) {
+            throw new BadRequestException("Field: text. Error: shorter than 2 or longer than 500. Value: " + text);
         }
     }
 
@@ -299,8 +299,8 @@ public class Validator {
         if (text != null) {
             if (text.isBlank()) {
                 throw new BadRequestException("Field: text. Error: empty. Value: " + text);
-            } else if (text.length() < 20 || text.length() > 500) {
-                throw new BadRequestException("Field: text. Error: shorter than 20 or longer than 2000. Value: " + text);
+            } else if (text.length() < 2 || text.length() > 500) {
+                throw new BadRequestException("Field: text. Error: shorter than 2 or longer than 500. Value: " + text);
             }
         }
     }

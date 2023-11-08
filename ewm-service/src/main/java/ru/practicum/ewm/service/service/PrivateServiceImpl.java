@@ -4,16 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.service.dto.comment.CommentDto;
+import ru.practicum.ewm.service.dto.comment.TextCommentDto;
 import ru.practicum.ewm.service.dto.event.*;
 import ru.practicum.ewm.service.exception.model.ConflictException;
 import ru.practicum.ewm.service.exception.model.ForbiddenException;
 import ru.practicum.ewm.service.exception.model.NotFoundException;
 import ru.practicum.ewm.service.mapper.EventMapper;
 import ru.practicum.ewm.service.model.*;
-import ru.practicum.ewm.service.repository.CategoryRepository;
-import ru.practicum.ewm.service.repository.EventRepository;
-import ru.practicum.ewm.service.repository.ParticipationRequestRepository;
-import ru.practicum.ewm.service.repository.UserRepository;
+import ru.practicum.ewm.service.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -21,6 +20,7 @@ import java.util.*;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToFullDto;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToShortDtos;
 import static ru.practicum.ewm.service.mapper.ParticipationRequestMapper.map;
+import static ru.practicum.ewm.service.mapper.CommentMapper.map;
 import static ru.practicum.ewm.service.valid.Validator.DATE_TIME_FORMATTER;
 
 @Service
@@ -32,6 +32,8 @@ public class PrivateServiceImpl implements PrivateService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final ParticipationRequestRepository requestRepository;
+    private final CommentRepository commentRepository;
+    private static final String EVENT_AUTHOR_COMMENT_PREFIX = "Comment by event initiator: ";
 
     /** Private: События */
     @Override
@@ -347,5 +349,102 @@ public class PrivateServiceImpl implements PrivateService {
         }
         request.setStatus(Status.CANCELED);
         return map(requestRepository.save(request));
+    }
+
+    /** Private: Комментарии */
+    @Override
+    public List<CommentDto> getCommentsByCommenter(int commenterId) {
+        /* check commenter existence */
+        if (!userRepository.existsById(commenterId)) {
+            throw new NotFoundException("User with id=" + commenterId + " was not found");
+        }
+        return map(commentRepository.findAllByAuthorIdOrderByCreatedOnDesc(commenterId));
+    }
+
+    @Override
+    @Transactional
+    public CommentDto addComment(TextCommentDto newComment, int eventAuthorId, int eventId, int commenterId) {
+        /* check event author and commenter existence */
+        if (!userRepository.existsById(eventAuthorId)) {
+            throw new NotFoundException("User with id=" + eventAuthorId + " was not found");
+        }
+        User commenter = userRepository.findById(commenterId)
+                .orElseThrow(() -> new NotFoundException("User with id=" + commenterId + " was not found"));
+
+        /* check event existence and it is PUBLISHED */
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
+        if (event.getState() != State.PUBLISHED) {
+            throw new NotFoundException("Event with id=" + eventId + " was not found");
+        }
+        if (event.getInitiator().getId() != eventAuthorId) {
+            throw new NotFoundException("No such event with id=" + eventId + " and with initiator with id=" + eventAuthorId);
+        }
+
+        return map(commentRepository.save(Comment.builder()
+                .text(eventAuthorId == commenterId
+                        ? EVENT_AUTHOR_COMMENT_PREFIX + newComment.getText()
+                        : newComment.getText())
+                .author(commenter)
+                .event(event)
+                .createdOn(LocalDateTime.now())
+                .build()));
+    }
+
+    @Override
+    public CommentDto getCommentByCommenter(int commenterId, int commentId) {
+        /* check commenter and comment existence */
+        if (!userRepository.existsById(commenterId)) {
+            throw new NotFoundException("User with id=" + commenterId + " was not found");
+        }
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Comment with id=" + commentId + " was not found"));
+
+        /* check comment author */
+        if (comment.getAuthor().getId() != commenterId) {
+            throw new NotFoundException("User with id=" + commenterId + " is not owner of the comment with id=" + commentId);
+        }
+        return map(comment);
+    }
+
+    @Override
+    @Transactional
+    public CommentDto updateCommentByCommenter(int commenterId, int commentId, TextCommentDto commentUpdate) {
+        /* check user and comment existence */
+        if (!userRepository.existsById(commenterId)) {
+            throw new NotFoundException("User with id=" + commenterId + " was not found");
+        }
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Comment with id=" + commentId + " was not found"));
+
+        /* check comment author */
+        if (comment.getAuthor().getId() != commenterId) {
+            throw new ConflictException("Cannot edit because user with id=" + commenterId + " is not author of the comment with id=" + commentId);
+        }
+
+        if (commentUpdate.getText() != null) {
+            comment.setText(comment.getEvent().getInitiator().getId() == commenterId
+                    ? EVENT_AUTHOR_COMMENT_PREFIX + commentUpdate.getText()
+                    : commentUpdate.getText());
+        }
+        return map(commentRepository.save(comment));
+    }
+
+    @Override
+    @Transactional
+    public void deleteCommentByCommenter(int commenterId, int commentId) {
+        /* check user and comment existence */
+        if (!userRepository.existsById(commenterId)) {
+            throw new NotFoundException("User with id=" + commenterId + " was not found");
+        }
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Comment with id=" + commentId + " was not found"));
+
+        /* check comment author */
+        if (comment.getAuthor().getId() != commenterId) {
+            throw new ConflictException("Cannot delete because user with id=" + commenterId + " is not author of the comment with id=" + commentId);
+        }
+
+        categoryRepository.deleteById(commentId);
     }
 }

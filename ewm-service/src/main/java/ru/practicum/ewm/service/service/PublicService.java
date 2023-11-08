@@ -2,6 +2,7 @@ package ru.practicum.ewm.service.service;
 
 import ru.practicum.ewm.service.controller.EventSort;
 import ru.practicum.ewm.service.dto.category.CategoryDto;
+import ru.practicum.ewm.service.dto.comment.CommentDto;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.event.EventFullDto;
 import ru.practicum.ewm.service.dto.event.EventShortDto;
@@ -33,4 +34,7 @@ public interface PublicService {
     List<CompilationDto> getCompilations(Boolean pinned, int from, int size);
 
     CompilationDto getCompilation(int compId);
+
+    /** Public: Комментарии */
+    List<CommentDto> getEventComments(int eventId);
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.ewm.service.dto.category.CategoryDto;
+import ru.practicum.ewm.service.dto.comment.CommentDto;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.event.EventFullDto;
 import ru.practicum.ewm.service.dto.event.EventShortDto;
@@ -99,5 +100,11 @@ public class PublicController {
     @GetMapping("/compilations/{compId}")
     public CompilationDto getCompilation(@PathVariable int compId) {
         return service.getCompilation(compId);
+    }
+
+    /** Public: Комментарии */
+    @GetMapping("/events/{id}/comments")
+    public List<CommentDto> getEventComments(@PathVariable(name = "id") int eventId) {
+        return service.getEventComments(eventId);
     }
 }

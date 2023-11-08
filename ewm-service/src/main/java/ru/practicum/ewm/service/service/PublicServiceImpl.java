@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.service.controller.EventSort;
 import ru.practicum.ewm.service.dto.category.CategoryDto;
+import ru.practicum.ewm.service.dto.comment.CommentDto;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.event.EventFullDto;
 import ru.practicum.ewm.service.dto.event.EventShortDto;
@@ -17,10 +18,7 @@ import ru.practicum.ewm.service.model.Compilation;
 import ru.practicum.ewm.service.model.Event;
 import ru.practicum.ewm.service.model.QEvent;
 import ru.practicum.ewm.service.model.State;
-import ru.practicum.ewm.service.repository.CategoryRepository;
-import ru.practicum.ewm.service.repository.CompilationEventRepository;
-import ru.practicum.ewm.service.repository.CompilationRepository;
-import ru.practicum.ewm.service.repository.EventRepository;
+import ru.practicum.ewm.service.repository.*;
 import ru.practicum.stats.client.model.StatsClient;
 
 import java.time.LocalDateTime;
@@ -31,6 +29,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.service.mapper.CategoryMapper.map;
+import static ru.practicum.ewm.service.mapper.CommentMapper.map;
 import static ru.practicum.ewm.service.mapper.CompilationMapper.map;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToFullDto;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToShortDto;
@@ -45,6 +44,7 @@ public class PublicServiceImpl implements PublicService {
     private final StatsClient statsClient;
     private final CompilationRepository compilationRepository;
     private final CompilationEventRepository compilationEventRepository;
+    private final CommentRepository commentRepository;
 
     /** Public: Категории */
     @Override
@@ -187,5 +187,14 @@ public class PublicServiceImpl implements PublicService {
                 .map(EventMapper::mapToShortDto)
                 .collect(Collectors.toList()));
         return res;
+    }
+
+    /** Public: Комментарии */
+    @Override
+    public List<CommentDto> getEventComments(int eventId) {
+        if (!eventRepository.existsById(eventId)) {
+            throw new NotFoundException("Event with id=" + eventId + " was not found");
+        }
+        return map(commentRepository.findAllByEventIdOrderByCreatedOnDesc(eventId));
     }
 }

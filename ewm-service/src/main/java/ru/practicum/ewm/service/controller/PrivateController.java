@@ -3,6 +3,8 @@ package ru.practicum.ewm.service.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.service.dto.comment.CommentDto;
+import ru.practicum.ewm.service.dto.comment.TextCommentDto;
 import ru.practicum.ewm.service.dto.event.*;
 import ru.practicum.ewm.service.service.PrivateService;
 
@@ -79,5 +81,42 @@ public class PrivateController {
     public ParticipationRequestDto cancelParticipationByRequester(@PathVariable int userId,
                                                                   @PathVariable int requestId) {
         return service.cancelParticipationByRequester(userId, requestId);
+    }
+
+    /** Private: Комментарии */
+    @GetMapping("/{userId}/comments")
+    public List<CommentDto> getCommentsByCommenter(@PathVariable(name = "userId") int commenterId) {
+        return service.getCommentsByCommenter(commenterId);
+    }
+
+    @PostMapping("/{userId}/events/{eventId}/comments")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommentDto addComment(@PathVariable(name = "userId") int eventAuthorId,
+                                 @PathVariable int eventId,
+                                 @RequestBody TextCommentDto comment,
+                                 @RequestParam int commenterId) {
+        validate(comment);
+        return service.addComment(comment, eventAuthorId, eventId, commenterId);
+    }
+
+    @GetMapping("/{userId}/comments/{commentId}")
+    public CommentDto getCommentByCommenter(@PathVariable(name = "userId") int commenterId,
+                                            @PathVariable int commentId) {
+        return service.getCommentByCommenter(commenterId, commentId);
+    }
+
+    @PatchMapping("/{userId}/comments/{commentId}")
+    public CommentDto updateCommentByCommenter(@PathVariable(name = "userId") int commenterId,
+                                               @PathVariable int commentId,
+                                               @RequestBody TextCommentDto commentUpdate) {
+        validateCommentUpdate(commentUpdate);
+        return service.updateCommentByCommenter(commenterId, commentId, commentUpdate);
+    }
+
+    @DeleteMapping("/{userId}/comments/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCommentByCommenter(@PathVariable(name = "userId") int commenterId,
+                                         @PathVariable int commentId) {
+        service.deleteCommentByCommenter(commenterId, commentId);
     }
 }

@@ -2,6 +2,7 @@ package ru.practicum.ewm.service.valid;
 
 import ru.practicum.ewm.service.dto.category.CategoryDto;
 import ru.practicum.ewm.service.dto.category.NewCategoryDto;
+import ru.practicum.ewm.service.dto.comment.TextCommentDto;
 import ru.practicum.ewm.service.dto.compilation.NewCompilationDto;
 import ru.practicum.ewm.service.dto.compilation.UpdateCompilationRequestDto;
 import ru.practicum.ewm.service.dto.event.*;
@@ -280,6 +281,26 @@ public class Validator {
                 throw new BadRequestException("Field: title. Error: empty. Value: " + title);
             } else if (title.isEmpty() || title.length() > 50) {
                 throw new BadRequestException("Field: title. Error: shorter than 1 or longer than 50. Value: " + title);
+            }
+        }
+    }
+
+    public static void validate(TextCommentDto newComment) {
+        String text = newComment.getText();
+        if (text == null || text.isBlank()) {
+            throw new BadRequestException("Field: text. Error: empty. Value: " + text);
+        } else if (text.length() < 20 || text.length() > 500) {
+            throw new BadRequestException("Field: text. Error: shorter than 20 or longer than 2000. Value: " + text);
+        }
+    }
+
+    public static void validateCommentUpdate(TextCommentDto commentUpdate) {
+        String text = commentUpdate.getText();
+        if (text != null) {
+            if (text.isBlank()) {
+                throw new BadRequestException("Field: text. Error: empty. Value: " + text);
+            } else if (text.length() < 20 || text.length() > 500) {
+                throw new BadRequestException("Field: text. Error: shorter than 20 or longer than 2000. Value: " + text);
             }
         }
     }

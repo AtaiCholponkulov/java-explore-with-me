@@ -55,5 +55,6 @@ CREATE TABLE IF NOT EXISTS comment (
     text varchar(500) NOT NULL,
     event_id BIGINT REFERENCES event(id) ON DELETE CASCADE,
     author_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    parent_comment_id BIGINT REFERENCES comment(id) ON DELETE CASCADE,
     created_on TIMESTAMP NOT NULL
 );

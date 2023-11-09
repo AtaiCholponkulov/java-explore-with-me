@@ -29,6 +29,10 @@ public class Comment {
     @JoinColumn(name = "author_id")
     private User author;/* автор */
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "parent_comment_id")
+    private Comment parentComment;
+
     @Column(name = "created_on")
     private LocalDateTime createdOn;/* дата и время создания */
 }

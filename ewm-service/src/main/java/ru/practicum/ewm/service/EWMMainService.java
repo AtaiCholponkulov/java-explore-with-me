@@ -12,8 +12,3 @@ public class EWMMainService {
         SpringApplication.run(EWMMainService.class, args);
     }
 }
-
-/* TODO
-    POSTMAN tests
-    walk through comment endpoints and service methods
- */

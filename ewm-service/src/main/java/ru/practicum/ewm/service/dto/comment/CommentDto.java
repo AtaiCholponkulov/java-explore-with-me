@@ -1,16 +1,36 @@
 package ru.practicum.ewm.service.dto.comment;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
-@Builder
+@Getter
+@Setter
 public class CommentDto {
 
-    private Integer id;
-    private String text;
-    private String authorName;
-    private LocalDateTime createdOn;
+    protected Integer id;
+    protected String text;
+    protected String authorName;
+    protected LocalDateTime createdOn;
+    private Integer parentCommentId;
+
+    public CommentDto(Integer id,
+                      String text,
+                      String authorName,
+                      LocalDateTime createdOn) {
+        this.id = id;
+        this.text = text;
+        this.authorName = authorName;
+        this.createdOn = createdOn;
+    }
+
+    public CommentDto(Integer id,
+                      String text,
+                      String authorName,
+                      LocalDateTime createdOn,
+                      Integer parentCommentId) {
+        this(id, text, authorName, createdOn);
+        this.parentCommentId = parentCommentId;
+    }
 }

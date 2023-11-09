@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.service.dto.comment.CommentDto;
+import ru.practicum.ewm.service.dto.comment.CommentWithSubsDto;
 import ru.practicum.ewm.service.dto.comment.TextCommentDto;
 import ru.practicum.ewm.service.dto.event.*;
 import ru.practicum.ewm.service.exception.model.ConflictException;
@@ -16,11 +17,12 @@ import ru.practicum.ewm.service.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
+import static ru.practicum.ewm.service.mapper.CommentMapper.map;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToFullDto;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToShortDtos;
 import static ru.practicum.ewm.service.mapper.ParticipationRequestMapper.map;
-import static ru.practicum.ewm.service.mapper.CommentMapper.map;
 import static ru.practicum.ewm.service.valid.Validator.DATE_TIME_FORMATTER;
 
 @Service
@@ -351,14 +353,36 @@ public class PrivateServiceImpl implements PrivateService {
         return map(requestRepository.save(request));
     }
 
-    /** Private: Комментарии */
+    /**
+     * Private: Комментарии
+     */
     @Override
-    public List<CommentDto> getCommentsByCommenter(int commenterId) {
+    public List<CommentWithSubsDto> getCommentsByCommenter(int commenterId, int from, int size) {
         /* check commenter existence */
         if (!userRepository.existsById(commenterId)) {
             throw new NotFoundException("User with id=" + commenterId + " was not found");
         }
-        return map(commentRepository.findAllByAuthorIdOrderByCreatedOnDesc(commenterId));
+
+        /* get comments without parentId */
+        List<Comment> parentComments = commentRepository.findAllByAuthorIdAndParentCommentIdIsNullOrderByCreatedOnDesc(commenterId, PageRequest.of(from, size));
+        if (parentComments.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Integer> parentIds = parentComments.stream()
+                .map(Comment::getId)
+                .collect(Collectors.toList());
+
+        /* setting up Map<parentId, List<subComment>> */
+        Map<Integer, List<CommentDto>> subComments = new HashMap<>();
+        commentRepository.findAllByParentCommentIdIn(parentIds).forEach(comment -> {
+            Integer parentId = comment.getParentComment().getId();
+            if (!subComments.containsKey(parentId)) {
+                subComments.put(parentId, new ArrayList<>());
+            }
+            subComments.get(parentId).add(map(comment));
+        });
+
+        return map(parentComments, subComments);
     }
 
     @Override
@@ -381,14 +405,47 @@ public class PrivateServiceImpl implements PrivateService {
             throw new NotFoundException("No such event with id=" + eventId + " and with initiator with id=" + eventAuthorId);
         }
 
-        return map(commentRepository.save(Comment.builder()
-                .text(eventAuthorId == commenterId
-                        ? EVENT_AUTHOR_COMMENT_PREFIX + newComment.getText()
-                        : newComment.getText())
-                .author(commenter)
-                .event(event)
-                .createdOn(LocalDateTime.now())
-                .build()));
+        return map(
+                commentRepository.save(
+                        Comment.builder()
+                                .text(eventAuthorId == commenterId
+                                        ? EVENT_AUTHOR_COMMENT_PREFIX + newComment.getText()
+                                        : newComment.getText())
+                                .author(commenter)
+                                .event(event)
+                                .createdOn(LocalDateTime.now())
+                                .build()));
+    }
+
+    @Override
+    @Transactional
+    public CommentDto addSubComment(int commentAuthorId, int commentId, TextCommentDto subComment, int subCommentAuthorId) {
+        /* check commentAuthor, comment and subCommentAuthor existence */
+        if (!userRepository.existsById(commentAuthorId)) {
+            throw new NotFoundException("User with id=" + commentAuthorId + " was not found");
+        }
+        Comment parentComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Comment with id=" + commentId + " was not found"));
+        if (parentComment.getAuthor().getId() != commentAuthorId) {
+            throw new NotFoundException("No such comment with id=" + commentId + " and with author with id=" + commentAuthorId);
+        }
+        if (parentComment.getParentComment() != null) {
+            throw new ForbiddenException("No such action: attempt to sub comment a sub comment with id=" + commentId);
+        }
+        User subCommentAuthor = userRepository.findById(subCommentAuthorId)
+                .orElseThrow(() -> new NotFoundException("User with id=" + subCommentAuthorId + " was not found"));
+
+        return map(
+                commentRepository.save(
+                        Comment.builder().text(
+                                parentComment.getEvent().getInitiator().getId() == subCommentAuthorId
+                                        ? EVENT_AUTHOR_COMMENT_PREFIX + subComment.getText()
+                                        : subComment.getText())
+                                .event(parentComment.getEvent())
+                                .author(subCommentAuthor)
+                                .parentComment(parentComment)
+                                .createdOn(LocalDateTime.now())
+                                .build()));
     }
 
     @Override
@@ -404,7 +461,12 @@ public class PrivateServiceImpl implements PrivateService {
         if (comment.getAuthor().getId() != commenterId) {
             throw new NotFoundException("User with id=" + commenterId + " is not owner of the comment with id=" + commentId);
         }
-        return map(comment);
+        if (comment.getParentComment() != null) {
+            return map(comment);
+        }
+
+        List<CommentDto> subs = map(commentRepository.findAllByParentCommentIdOrderByCreatedOnAsc(commentId));
+        return map(comment, subs);
     }
 
     @Override

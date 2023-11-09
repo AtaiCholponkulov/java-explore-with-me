@@ -6,26 +6,22 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.service.controller.CommentSort;
 import ru.practicum.ewm.service.controller.EventSort;
 import ru.practicum.ewm.service.dto.category.CategoryDto;
 import ru.practicum.ewm.service.dto.comment.CommentDto;
+import ru.practicum.ewm.service.dto.comment.CommentWithSubsDto;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.event.EventFullDto;
 import ru.practicum.ewm.service.dto.event.EventShortDto;
 import ru.practicum.ewm.service.exception.model.NotFoundException;
 import ru.practicum.ewm.service.mapper.EventMapper;
-import ru.practicum.ewm.service.model.Compilation;
-import ru.practicum.ewm.service.model.Event;
-import ru.practicum.ewm.service.model.QEvent;
-import ru.practicum.ewm.service.model.State;
+import ru.practicum.ewm.service.model.*;
 import ru.practicum.ewm.service.repository.*;
 import ru.practicum.stats.client.model.StatsClient;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.service.mapper.CategoryMapper.map;
@@ -189,12 +185,48 @@ public class PublicServiceImpl implements PublicService {
         return res;
     }
 
-    /** Public: Комментарии */
+    /**
+     * Public: Комментарии
+     */
     @Override
-    public List<CommentDto> getEventComments(int eventId) {
+    public List<CommentWithSubsDto> getEventComments(int eventId,
+                                                     CommentSort sort,
+                                                     int from,
+                                                     int size) {
+        /* check event existence */
         if (!eventRepository.existsById(eventId)) {
             throw new NotFoundException("Event with id=" + eventId + " was not found");
         }
-        return map(commentRepository.findAllByEventIdOrderByCreatedOnDesc(eventId));
+
+        /* get comments without parentId */
+        List<Comment> parentComments = new ArrayList<>();
+        Pageable page = PageRequest.of(from, size);
+        switch (sort) {
+            case ASC:
+                parentComments = commentRepository.findAllByEventIdAndParentCommentIdIsNullOrderByCreatedOnAsc(eventId, page);
+                break;
+            case DESC:
+                parentComments = commentRepository.findAllByEventIdAndParentCommentIdIsNullOrderByCreatedOnDesc(eventId, page);
+        }
+        if (parentComments.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Integer> parentIds = parentComments.stream()
+                .map(Comment::getId)
+                .collect(Collectors.toList());
+
+        /* setting up Map<parentId, List<subComment>> */
+        Map<Integer, List<CommentDto>> subComments = new HashMap<>();
+        commentRepository.findAllByParentCommentIdIn(parentIds)
+                .forEach(
+                        comment -> {
+                            Integer parentId = comment.getParentComment().getId();
+                            if (!subComments.containsKey(parentId)) {
+                                subComments.put(parentId, new ArrayList<>());
+                            }
+                            subComments.get(parentId).add(map(comment));
+                        });
+
+        return map(parentComments, subComments);
     }
 }

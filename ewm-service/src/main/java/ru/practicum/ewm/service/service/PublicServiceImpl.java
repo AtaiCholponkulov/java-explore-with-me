@@ -6,31 +6,27 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.service.controller.CommentSort;
 import ru.practicum.ewm.service.controller.EventSort;
 import ru.practicum.ewm.service.dto.category.CategoryDto;
+import ru.practicum.ewm.service.dto.comment.ParentComment;
+import ru.practicum.ewm.service.dto.comment.SubCommentDto;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.event.EventFullDto;
 import ru.practicum.ewm.service.dto.event.EventShortDto;
 import ru.practicum.ewm.service.exception.model.NotFoundException;
 import ru.practicum.ewm.service.mapper.EventMapper;
-import ru.practicum.ewm.service.model.Compilation;
-import ru.practicum.ewm.service.model.Event;
-import ru.practicum.ewm.service.model.QEvent;
-import ru.practicum.ewm.service.model.State;
-import ru.practicum.ewm.service.repository.CategoryRepository;
-import ru.practicum.ewm.service.repository.CompilationEventRepository;
-import ru.practicum.ewm.service.repository.CompilationRepository;
-import ru.practicum.ewm.service.repository.EventRepository;
+import ru.practicum.ewm.service.model.*;
+import ru.practicum.ewm.service.repository.*;
 import ru.practicum.stats.client.model.StatsClient;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.service.mapper.CategoryMapper.map;
+import static ru.practicum.ewm.service.mapper.CommentMapper.map;
+import static ru.practicum.ewm.service.mapper.CommentMapper.mapToSubDto;
 import static ru.practicum.ewm.service.mapper.CompilationMapper.map;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToFullDto;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToShortDto;
@@ -45,6 +41,7 @@ public class PublicServiceImpl implements PublicService {
     private final StatsClient statsClient;
     private final CompilationRepository compilationRepository;
     private final CompilationEventRepository compilationEventRepository;
+    private final CommentRepository commentRepository;
 
     /** Public: Категории */
     @Override
@@ -187,5 +184,50 @@ public class PublicServiceImpl implements PublicService {
                 .map(EventMapper::mapToShortDto)
                 .collect(Collectors.toList()));
         return res;
+    }
+
+    /**
+     * Public: Комментарии
+     */
+    @Override
+    public List<ParentComment> getEventComments(int eventId,
+                                                CommentSort sort,
+                                                int from,
+                                                int size) {
+        /* check event existence */
+        if (!eventRepository.existsById(eventId)) {
+            throw new NotFoundException("Event with id=" + eventId + " was not found");
+        }
+
+        /* get comments without parentId */
+        List<Comment> parentComments = new ArrayList<>();
+        Pageable page = PageRequest.of(from, size);
+        switch (sort) {
+            case ASC:
+                parentComments = commentRepository.findAllEventParentCommentsAsc(eventId, page);
+                break;
+            case DESC:
+                parentComments = commentRepository.findAllEventParentCommentsDesc(eventId, page);
+        }
+        if (parentComments.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Integer> parentIds = parentComments.stream()
+                .map(Comment::getId)
+                .collect(Collectors.toList());
+
+        /* setting up Map<parentId, List<subComment>> */
+        Map<Integer, List<SubCommentDto>> subComments = new HashMap<>();
+        commentRepository.findAllSubComments(parentIds)
+                .forEach(
+                        comment -> {
+                            Integer parentId = comment.getParentComment().getId();
+                            if (!subComments.containsKey(parentId)) {
+                                subComments.put(parentId, new ArrayList<>());
+                            }
+                            subComments.get(parentId).add(mapToSubDto(comment));
+                        });
+
+        return map(parentComments, subComments);
     }
 }

@@ -1,5 +1,9 @@
 package ru.practicum.ewm.service.service;
 
+import ru.practicum.ewm.service.dto.comment.CommentDto;
+import ru.practicum.ewm.service.dto.comment.ParentComment;
+import ru.practicum.ewm.service.dto.comment.SubCommentDto;
+import ru.practicum.ewm.service.dto.comment.TextCommentDto;
 import ru.practicum.ewm.service.dto.event.*;
 
 import java.util.List;
@@ -25,4 +29,19 @@ public interface PrivateService {
     ParticipationRequestDto addParticipationRequest(int userId, int eventId);
 
     ParticipationRequestDto cancelParticipationByRequester(int userId, int requestId);
+
+    /**
+     * Private: Комментарии
+     */
+    List<ParentComment> getCommentsByCommenter(int commenterId, int from, int size);
+
+    CommentDto addComment(TextCommentDto comment, int eventAuthorId, int eventId, int commenterId);
+
+    SubCommentDto addSubComment(int commentAuthorId, int commentId, TextCommentDto subComment, int subCommentAuthorId);
+
+    CommentDto getCommentByCommenter(int commenterId, int commentId);
+
+    CommentDto updateCommentByCommenter(int commenterId, int commentId, TextCommentDto commentUpdate);
+
+    void deleteCommentByCommenter(int commenterId, int commentId);
 }

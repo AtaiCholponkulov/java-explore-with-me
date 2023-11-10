@@ -1,7 +1,8 @@
 package ru.practicum.ewm.service.service;
 
 import ru.practicum.ewm.service.dto.comment.CommentDto;
-import ru.practicum.ewm.service.dto.comment.CommentWithSubsDto;
+import ru.practicum.ewm.service.dto.comment.ParentComment;
+import ru.practicum.ewm.service.dto.comment.SubCommentDto;
 import ru.practicum.ewm.service.dto.comment.TextCommentDto;
 import ru.practicum.ewm.service.dto.event.*;
 
@@ -32,11 +33,11 @@ public interface PrivateService {
     /**
      * Private: Комментарии
      */
-    List<CommentWithSubsDto> getCommentsByCommenter(int commenterId, int from, int size);
+    List<ParentComment> getCommentsByCommenter(int commenterId, int from, int size);
 
     CommentDto addComment(TextCommentDto comment, int eventAuthorId, int eventId, int commenterId);
 
-    CommentDto addSubComment(int commentAuthorId, int commentId, TextCommentDto subComment, int subCommentAuthorId);
+    SubCommentDto addSubComment(int commentAuthorId, int commentId, TextCommentDto subComment, int subCommentAuthorId);
 
     CommentDto getCommentByCommenter(int commenterId, int commentId);
 

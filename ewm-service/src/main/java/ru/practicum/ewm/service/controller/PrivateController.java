@@ -4,7 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.service.dto.comment.CommentDto;
-import ru.practicum.ewm.service.dto.comment.CommentWithSubsDto;
+import ru.practicum.ewm.service.dto.comment.ParentComment;
+import ru.practicum.ewm.service.dto.comment.SubCommentDto;
 import ru.practicum.ewm.service.dto.comment.TextCommentDto;
 import ru.practicum.ewm.service.dto.event.*;
 import ru.practicum.ewm.service.service.PrivateService;
@@ -86,9 +87,9 @@ public class PrivateController {
 
     /** Private: Комментарии */
     @GetMapping("/{userId}/comments")
-    public List<CommentWithSubsDto> getCommentsByCommenter(@PathVariable(name = "userId") int commenterId,
-                                                           @RequestParam(defaultValue = "0") int from,
-                                                           @RequestParam(defaultValue = "10") int size) {
+    public List<ParentComment> getCommentsByCommenter(@PathVariable(name = "userId") int commenterId,
+                                                      @RequestParam(defaultValue = "0") int from,
+                                                      @RequestParam(defaultValue = "10") int size) {
         validatePaginationParams(from, size);
         return service.getCommentsByCommenter(commenterId, from, size);
     }
@@ -105,10 +106,10 @@ public class PrivateController {
 
     @PostMapping("/{userId}/comments/{commentId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public CommentDto addSubComment(@PathVariable(name = "userId") int commentAuthorId,
-                                    @PathVariable int commentId,
-                                    @RequestBody TextCommentDto subComment,
-                                    @RequestParam(name = "userId") int subCommentAuthorId) {
+    public SubCommentDto addSubComment(@PathVariable(name = "userId") int commentAuthorId,
+                                       @PathVariable int commentId,
+                                       @RequestBody TextCommentDto subComment,
+                                       @RequestParam(name = "userId") int subCommentAuthorId) {
         validate(subComment);
         return service.addSubComment(commentAuthorId, commentId, subComment, subCommentAuthorId);
     }

@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.service.controller.CommentSort;
 import ru.practicum.ewm.service.controller.EventSort;
 import ru.practicum.ewm.service.dto.category.CategoryDto;
-import ru.practicum.ewm.service.dto.comment.CommentDto;
-import ru.practicum.ewm.service.dto.comment.CommentWithSubsDto;
+import ru.practicum.ewm.service.dto.comment.ParentComment;
+import ru.practicum.ewm.service.dto.comment.SubCommentDto;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.event.EventFullDto;
 import ru.practicum.ewm.service.dto.event.EventShortDto;
@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.service.mapper.CategoryMapper.map;
 import static ru.practicum.ewm.service.mapper.CommentMapper.map;
+import static ru.practicum.ewm.service.mapper.CommentMapper.mapToSubDto;
 import static ru.practicum.ewm.service.mapper.CompilationMapper.map;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToFullDto;
 import static ru.practicum.ewm.service.mapper.EventMapper.mapToShortDto;
@@ -189,10 +190,10 @@ public class PublicServiceImpl implements PublicService {
      * Public: Комментарии
      */
     @Override
-    public List<CommentWithSubsDto> getEventComments(int eventId,
-                                                     CommentSort sort,
-                                                     int from,
-                                                     int size) {
+    public List<ParentComment> getEventComments(int eventId,
+                                                CommentSort sort,
+                                                int from,
+                                                int size) {
         /* check event existence */
         if (!eventRepository.existsById(eventId)) {
             throw new NotFoundException("Event with id=" + eventId + " was not found");
@@ -203,10 +204,10 @@ public class PublicServiceImpl implements PublicService {
         Pageable page = PageRequest.of(from, size);
         switch (sort) {
             case ASC:
-                parentComments = commentRepository.findAllByEventIdAndParentCommentIdIsNullOrderByCreatedOnAsc(eventId, page);
+                parentComments = commentRepository.findAllEventParentCommentsAsc(eventId, page);
                 break;
             case DESC:
-                parentComments = commentRepository.findAllByEventIdAndParentCommentIdIsNullOrderByCreatedOnDesc(eventId, page);
+                parentComments = commentRepository.findAllEventParentCommentsDesc(eventId, page);
         }
         if (parentComments.isEmpty()) {
             return new ArrayList<>();
@@ -216,15 +217,15 @@ public class PublicServiceImpl implements PublicService {
                 .collect(Collectors.toList());
 
         /* setting up Map<parentId, List<subComment>> */
-        Map<Integer, List<CommentDto>> subComments = new HashMap<>();
-        commentRepository.findAllByParentCommentIdIn(parentIds)
+        Map<Integer, List<SubCommentDto>> subComments = new HashMap<>();
+        commentRepository.findAllSubComments(parentIds)
                 .forEach(
                         comment -> {
                             Integer parentId = comment.getParentComment().getId();
                             if (!subComments.containsKey(parentId)) {
                                 subComments.put(parentId, new ArrayList<>());
                             }
-                            subComments.get(parentId).add(map(comment));
+                            subComments.get(parentId).add(mapToSubDto(comment));
                         });
 
         return map(parentComments, subComments);

@@ -3,7 +3,7 @@ package ru.practicum.ewm.service.service;
 import ru.practicum.ewm.service.controller.CommentSort;
 import ru.practicum.ewm.service.controller.EventSort;
 import ru.practicum.ewm.service.dto.category.CategoryDto;
-import ru.practicum.ewm.service.dto.comment.CommentWithSubsDto;
+import ru.practicum.ewm.service.dto.comment.ParentComment;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.event.EventFullDto;
 import ru.practicum.ewm.service.dto.event.EventShortDto;
@@ -39,8 +39,8 @@ public interface PublicService {
     /**
      * Public: Комментарии
      */
-    List<CommentWithSubsDto> getEventComments(int eventId,
-                                              CommentSort sort,
-                                              int from,
-                                              int size);
+    List<ParentComment> getEventComments(int eventId,
+                                         CommentSort sort,
+                                         int from,
+                                         int size);
 }

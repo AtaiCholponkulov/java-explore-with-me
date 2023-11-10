@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.ewm.service.dto.category.CategoryDto;
-import ru.practicum.ewm.service.dto.comment.CommentWithSubsDto;
+import ru.practicum.ewm.service.dto.comment.ParentComment;
 import ru.practicum.ewm.service.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.dto.event.EventFullDto;
 import ru.practicum.ewm.service.dto.event.EventShortDto;
@@ -104,10 +104,10 @@ public class PublicController {
 
     /** Public: Комментарии */
     @GetMapping("/events/{id}/comments")
-    public List<CommentWithSubsDto> getEventComments(@PathVariable(name = "id") int eventId,
-                                                     @RequestParam(defaultValue = "DESC") CommentSort sort,
-                                                     @RequestParam(defaultValue = "0") int from,
-                                                     @RequestParam(defaultValue = "10") int size) {
+    public List<ParentComment> getEventComments(@PathVariable(name = "id") int eventId,
+                                                @RequestParam(defaultValue = "DESC") CommentSort sort,
+                                                @RequestParam(defaultValue = "0") int from,
+                                                @RequestParam(defaultValue = "10") int size) {
         validatePaginationParams(from, size);
         return service.getEventComments(eventId, sort, from, size);
     }

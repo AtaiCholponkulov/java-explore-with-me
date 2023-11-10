@@ -1,7 +1,8 @@
 package ru.practicum.ewm.service.mapper;
 
 import ru.practicum.ewm.service.dto.comment.CommentDto;
-import ru.practicum.ewm.service.dto.comment.CommentWithSubsDto;
+import ru.practicum.ewm.service.dto.comment.ParentComment;
+import ru.practicum.ewm.service.dto.comment.SubCommentDto;
 import ru.practicum.ewm.service.model.Comment;
 
 import java.util.List;
@@ -10,34 +11,43 @@ import java.util.stream.Collectors;
 
 public class CommentMapper {
 
-    public static CommentDto map(Comment subComment) {
+    public static CommentDto mapToDto(Comment comment) {
         return new CommentDto(
-                subComment.getId(),
-                subComment.getText(),
-                subComment.getAuthor().getName(),
-                subComment.getCreatedOn(),
-                subComment.getParentComment() == null
-                        ? null
-                        : subComment.getParentComment().getId());
-    }
-
-    public static List<CommentDto> map(List<Comment> subComments) {
-        return subComments.stream()
-                .map(CommentMapper::map)
-                .collect(Collectors.toList());
-    }
-
-    public static CommentWithSubsDto map(Comment comment, List<CommentDto> subs) {
-        return new CommentWithSubsDto(
                 comment.getId(),
                 comment.getText(),
                 comment.getAuthor().getName(),
+                comment.getEvent().getId(),
+                comment.getCreatedOn());
+    }
+
+    public static SubCommentDto mapToSubDto(Comment comment) {
+        return new SubCommentDto(
+                comment.getId(),
+                comment.getText(),
+                comment.getAuthor().getName(),
+                comment.getEvent().getId(),
+                comment.getCreatedOn(),
+                comment.getParentComment().getId());
+    }
+
+    public static List<SubCommentDto> map(List<Comment> subComments) {
+        return subComments.stream()
+                .map(CommentMapper::mapToSubDto)
+                .collect(Collectors.toList());
+    }
+
+    public static ParentComment map(Comment comment, List<SubCommentDto> subs) {
+        return new ParentComment(
+                comment.getId(),
+                comment.getText(),
+                comment.getAuthor().getName(),
+                comment.getEvent().getId(),
                 comment.getCreatedOn(),
                 subs);
     }
 
-    public static List<CommentWithSubsDto> map(List<Comment> parentComments,
-                                               Map<Integer, List<CommentDto>> subComments) {
+    public static List<ParentComment> map(List<Comment> parentComments,
+                                       Map<Integer, List<SubCommentDto>> subComments) {
         return parentComments.stream()
                 .map(comment -> map(
                         comment,
@@ -45,7 +55,7 @@ public class CommentMapper {
                 .collect(Collectors.toList());
     }
 
-    private static List<CommentDto> sortedByEventDateAsc(List<CommentDto> comments) {
+    private static List<SubCommentDto> sortedByEventDateAsc(List<SubCommentDto> comments) {
         if (comments == null) {
             return null;
         }
